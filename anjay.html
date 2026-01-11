@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <title>XI TKJ 2 | Digital Universe</title>
+    <link rel="icon" type="image/jpeg" href="https://files.catbox.moe/bmpewp.jpg">
+    <link rel="apple-touch-icon" href="https://files.catbox.moe/bmpewp.jpg">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet"/>
+    <style>
+        :root {
+            --bg-body: #030303;
+            --bg-card: rgba(10, 10, 10, 0.7);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.7);
+            --accent: #8e2de2;
+            --accent2: #4a00e0;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --splash-bg: #000000;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f0f2f5;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --text-main: #1a1a1a;
+            --text-dim: rgba(0, 0, 0, 0.6);
+            --glass: rgba(0, 0, 0, 0.05);
+            --border: rgba(0, 0, 0, 0.1);
+            --splash-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            background: var(--bg-body);
+            overflow: hidden;
+            height: 100vh;
+            transition: background 0.5s ease;
+        }
+
+        #cursor {
+            width: 20px; height: 20px; border: 2px solid var(--accent);
+            border-radius: 50%; position: fixed; pointer-events: none;
+            z-index: 9999; transition: transform 0.1s;
+        }
+
+        #particles-js { position: fixed; width: 100%; height: 100%; z-index: 1; }
+
+        /* SPLASH SCREEN */
+        #splash {
+            position: fixed; inset: 0; background: var(--splash-bg); z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: 0.8s ease-in-out;
+        }
+        #splash.hidden { opacity: 0; pointer-events: none; }
+
+        .splash-img {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 3px solid var(--accent); margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(142, 45, 226, 0.5);
+        }
+
+        /* CONTROLS */
+        .controls-top {
+            position: fixed; top: 20px; right: 20px; z-index: 100;
+            display: flex; gap: 10px;
+        }
+        .ctrl-btn {
+            background: var(--glass); backdrop-filter: blur(10px);
+            padding: 10px; border-radius: 50%; border: 1px solid var(--border);
+            width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
+            color: var(--text-main); cursor: pointer; transition: 0.3s;
+        }
+
+        .status-bar {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 100; display: flex; gap: 20px; font-family: 'Orbitron';
+            font-size: 0.8rem; letter-spacing: 2px; opacity: 0.6; color: var(--text-main);
+        }
+
+        .main-wrapper {
+            position: relative; z-index: 10; display: flex;
+            justify-content: center; align-items: center; height: 100vh; padding: 20px;
+        }
+
+        .card {
+            background: var(--bg-card); backdrop-filter: blur(25px);
+            border-radius: 30px; padding: 40px; width: 100%; max-width: 800px;
+            max-height: 85vh; overflow-y: auto;
+            border: 1px solid var(--border); box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            position: relative; transition: 0.5s ease; text-align: center;
+        }
+        .card::-webkit-scrollbar { width: 5px; }
+        .card::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .header-logos { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; }
+        .header-logos img { width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--accent); padding: 3px; }
+
+        h1 { font-family: 'Orbitron'; font-size: 1.5rem; margin-bottom: 5px; color: var(--text-main); }
+        .tagline { color: var(--accent); font-size: 0.8rem; letter-spacing: 3px; margin-bottom: 20px; display: block; }
+
+        /* GRID & ITEMS */
+        .nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+        .nav-item {
+            background: var(--glass); padding: 15px; border-radius: 15px;
+            text-decoration: none; color: var(--text-main); font-size: 0.7rem;
+            transition: 0.3s; border: 1px solid transparent; text-align: center;
+        }
+        .nav-item:hover { border-color: var(--accent); background: rgba(142, 45, 226, 0.1); transform: translateY(-3px); }
+
+        .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; margin-top: 20px; }
+        .student-item {
+            background: var(--glass); padding: 10px; border-radius: 12px;
+            text-align: center; border: 1px solid var(--border); transition: 0.3s;
+        }
+        .student-item:hover { border-color: var(--accent); transform: scale(1.05); }
+        .student-item img { width: 60px; height: 60px; border-radius: 50%; margin-bottom: 8px; border: 2px solid var(--accent); object-fit: cover; }
+        .student-name { font-size: 0.65rem; display: block; font-weight: bold; color: var(--text-main); }
+
+        /* GALLERY GRID */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .gallery-item { border-radius: 15px; overflow: hidden; height: 150px; border: 1px solid var(--border); cursor: pointer; position: relative; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .gallery-item:hover img { transform: scale(1.1); }
+        .gallery-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); font-size: 0.6rem; padding: 5px; font-family: 'Orbitron'; }
+
+        /* MODAL POPUP */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px); z-index: 3000;
+            display: none; align-items: center; justify-content: center;
+            padding: 20px; animation: fadeIn 0.3s ease;
+        }
+        .modal-content {
+            background: var(--bg-card); border: 1px solid var(--accent);
+            padding: 30px; border-radius: 25px; width: 100%; max-width: 350px;
+            position: relative; text-align: center; color: var(--text-main);
+            box-shadow: 0 0 30px var(--accent);
+        }
+
+        /* CUSTOM MODAL FOR 50 PHOTOS */
+        .modal-content.wide { max-width: 900px; max-height: 80vh; overflow-y: auto; }
+        .sub-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 20px; }
+        .sub-gallery-item { aspect-ratio: 1/1; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+        .sub-gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        .modal-content img.profile-img { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 15px; }
+        .modal-info { margin: 20px 0; text-align: left; background: var(--glass); padding: 15px; border-radius: 15px; }
+        .modal-info div { margin-bottom: 10px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
+        .modal-info i { color: var(--accent); width: 20px; text-align: center; }
+
+        .tab-content { display: none; animation: slideUp 0.5s ease forwards; }
+        .tab-content.active { display: block; }
+
+        .btn-action {
+            font-family: 'Orbitron'; background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white; border: none; padding: 12px 30px; border-radius: 50px;
+            margin-top: 10px; transition: 0.4s; font-weight: bold; font-size: 0.8rem; cursor: pointer;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 480px) { .nav-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+
+    <div id="cursor"></div>
+    <div id="particles-js"></div>
+
+    <div class="status-bar">
+        <span id="clock">00:00:00</span>
+        <span>|</span>
+        <span>XI TKJ 2</span>
+    </div>
+
+    <div class="controls-top">
+        <div class="ctrl-btn" onclick="toggleTheme()"><i id="theme-icon" class="fas fa-moon"></i></div>
+        <div class="ctrl-btn" onclick="toggleMusic()"><i id="music-icon" class="fas fa-music"></i></div>
+    </div>
+
+    <div id="splash">
+        <img src="https://files.catbox.moe/bmpewp.jpg" class="splash-img">
+        <h2 style="font-family: 'Orbitron'; color:white; letter-spacing: 2px;">Welcome to Digital Universe</h2>
+        <button class="btn-action" onclick="enterSite()" style="margin-top: 30px;">CONNECT SYSTEM</button>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="card" id="mainCard">
+            <div class="tab-content active" id="home">
+                <div class="header-logos">
+                    <img src="https://files.catbox.moe/4lrg50.jpg">
+                    <img src="https://files.catbox.moe/bmpewp.jpg">
+                </div>
+                <h1>SEBELAS TKJ 2</h1>
+                <span class="tagline">SMKN MANONJAYA</span>
+                <p id="typewriter" style="min-height: 20px; font-size: 0.8rem;"></p>
+                
+                <div class="nav-grid">
+                    <a href="javascript:void(0)" onclick="showTab('teacher')" class="nav-item"><i class="fas fa-chalkboard-teacher"></i><br>Walikelas</a>
+                    <a href="javascript:void(0)" onclick="showTab('parents')" class="nav-item"><i class="fas fa-user-shield"></i><br>Wali Murid</a>
+                    <a href="javascript:void(0)" onclick="showTab('students')" class="nav-item"><i class="fas fa-users"></i><br>Students</a>
+                    <a href="javascript:void(0)" onclick="showTab('gallery')" class="nav-item"><i class="fas fa-images"></i><br>Gallery</a>
+                    <a href="javascript:void(0)" onclick="showTab('status')" class="nav-item"><i class="fas fa-server"></i><br>Stats</a>
+                    <a href="javascript:void(0)" onclick="showTab('about')" class="nav-item"><i class="fas fa-info-circle"></i><br>Visi Misi</a>
+                </div>
+            </div>
+
+            <div class="tab-content" id="teacher">
+                <h2 style="font-family: 'Orbitron'; color: var(--accent);">Wali Kelas</h2>
+                <img src="https://files.catbox.moe/21rr7r.jpg" style="width:120px; height:120px; border-radius:50%; margin:20px 0; border:2px solid var(--accent); object-fit: cover;">
+                <h3>Lina Yuliana, S.Pd</h3>
+                <p style="margin-bottom:15px; font-size: 0.9rem;">Guru IPAS / PKK</p>
+                <div class="modal-info" style="text-align:center;">"Membangun generasi teknologi dengan karakter unggul."</div>
+                <button class="btn-action" onclick="showTab('home')">BACK</button>
+            </div>
+
+            <div class="tab-content" id="parents">
+                <h2 style="font-family: 'Orbitron'; color: var(--accent);">Wali Murid</h2>
+                <img src="https://files.catbox.moe/21rr7r.jpg" style="width:120px; height:120px; border-radius:50%; margin:20px 0; border:2px solid var(--accent); object-fit: cover;">
+                <h3>Nandar Rohiman, S.Kom</h3>
+                <p style="margin-bottom:15px; font-size: 0.9rem;">Kepala Jurusan TKJ</p>
+                <div class="modal-info" style="text-align:center;">Guru TJKN (Teknologi Jaringan Kabel & Nirkabel)</div>
+                <button class="btn-action" onclick="showTab('home')">BACK</button>
+            </div>
+
+            <div class="tab-content" id="students">
+                <h2 style="font-family: 'Orbitron'; margin-bottom: 10px;">Biodata Murid</h2>
+                <div class="student-grid" id="studentList"></div>
+                <button class="btn-action" onclick="showTab('home')">BACK</button>
+            </div>
+
+            <div class="tab-content" id="gallery">
+                <h2 style="font-family: 'Orbitron'; margin-bottom: 10px;">Gallery Moments</h2>
+                <div class="gallery-grid">
+                    <div class="gallery-item" onclick="openSubGallery('Momen Kebersamaan')">
+                        <img src="https://files.catbox.moe/bmpewp.jpg">
+                        <div class="gallery-label">CLASS EVENTS</div>
+                    </div>
+                    <div class="gallery-item" onclick="openSubGallery('Praktik Kejuruan')">
+                        <img src="https://files.catbox.moe/lpvb3t.jpg">
+                        <div class="gallery-label">PRACTICE</div>
+                    </div>
+                    <div class="gallery-item" onclick="openSubGallery('Kenangan Wisata')">
+                        <img src="https://files.catbox.moe/bmpewp.jpg">
+                        <div class="gallery-label">TRIP</div>
+                    </div>
+                    <div class="gallery-item" onclick="openSubGallery('Kegiatan Sekolah')">
+                        <img src="https://files.catbox.moe/lpvb3t.jpg">
+                        <div class="gallery-label">SCHOOL ACTIVITIES</div>
+                    </div>
+                </div>
+                <button class="btn-action" onclick="showTab('home')">BACK</button>
+            </div>
+
+            <div class="tab-content" id="status">
+                <h2 style="font-family: 'Orbitron';">Class Analytics</h2>
+                <div class="modal-info" style="text-align: left;">
+                    <div><i class="fas fa-user-friends"></i> Total Murid: 34</div>
+                    <div><i class="fas fa-mars"></i> Laki-laki: 22</div>
+                    <div><i class="fas fa-venus"></i> Perempuan: 12</div>
+                    <div><i class="fas fa-bolt"></i> Spirit Level: 100%</div>
+                </div>
+                <button class="btn-action" onclick="showTab('home')">BACK</button>
+            </div>
+
+            <div class="tab-content" id="about">
+                <h2 style="font-family: 'Orbitron';">Vision & Mission</h2>
+                <p style="padding: 20px; line-height: 1.6; text-align: justify;">Menjadi kelas yang solid, unggul dalam teknologi informasi, menjunjung tinggi nilai solidaritas, serta mencetak teknisi jaringan yang handal dan beretika.</p>
+                <button class="btn-action" onclick="showTab('home')">BACK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="studentModal">
+        <div class="modal-content">
+            <img id="m-img" src="" class="profile-img">
+            <h3 id="m-name" style="font-family: 'Orbitron'; color: var(--accent);"></h3>
+            <div class="modal-info">
+                <div><i class="fas fa-calendar-alt"></i> <span id="m-dob"></span></div>
+                <div><i class="fab fa-instagram"></i> <span id="m-ig"></span></div>
+            </div>
+            <button class="btn-action" onclick="closeProfile()">CLOSE</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="galleryModal">
+        <div class="modal-content wide">
+            <h2 id="g-title" style="font-family: 'Orbitron'; color: var(--accent); margin-bottom: 10px;"></h2>
+            <div class="sub-gallery-grid" id="subGalleryContainer"></div>
+            <button class="btn-action" style="margin-top:20px" onclick="closeSubGallery()">CLOSE GALLERY</button>
+        </div>
+    </div>
+
+    <audio id="bgm" src="https://files.catbox.moe/d891s7.mp3" loop></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>
+        const members = [
+            { name: "Ade Irwansah", dob: "10 Februari 2009", ig: "@irwan_ggggg", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Akmal Muhamad Fauzi", dob: "12 Mei 2008", ig: "@akmallfauziiiii_", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Dede Ridwan", dob: "20 Oktober 2008", ig: "@r.1dwnn_", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Desti Nur Rahmawati", dob: "20 April 2008", ig: "@r_dessst", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Dimas Fabian Saputra", dob: "11 Agustus 2008", ig: "@leo11_0808", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Ferry Ferdian", dob: "24 April 2009", ig: "@frryfrrdyn_", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Gilang Agustian", dob: "14 Agustus 2008", ig: "@dotvyr", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Gista Gistiani", dob: "26 Agustus 2008", ig: "@gstagstni", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Haura Salsabila Aryaputri", dob: "17 Juli 2009", ig: "@rrar4_arya", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Hilda Nurfuadah", dob: "22 Januari 2009", ig: "@hildanurfuadah", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Irpan Muhammad Rizki", dob: "07 Februari 2008", ig: "@pan_psbt", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Liska Jantika", dob: "29 Januari 2009", ig: "@liskajntkaww", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Marita Dwiana", dob: "28 Maret 2009", ig: "@mrita103_", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Melta Sripuspita", dob: "13 September 2008", ig: "@melta766", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Naisya Nur Razkya", dob: "26 Februari 2008", ig: "@caa.nayyy", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Nida Nurwahidah", dob: "02 Juli 2008", ig: "@ndnrwhdh02_", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Pahma Asypi Nurjanah", dob: "06 Desember 2008", ig: "@phmaasypiii_", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Pasya Ramadan", dob: "11 Oktober 2007", ig: "@pasya_rm", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Raditya Bintang Pamungkas", dob: "11 Desember 2009", ig: "@dobinnnn_", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Raihan Santi Ramadhan", dob: "01 September 2008", ig: "@__rhanxyzz", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Razka Keyra Abigail", dob: "14 Oktober 2008", ig: "@rkeyraabigl", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Resti Ponita", dob: "01 Juni 2009", ig: "@rssti_resti", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Rizky Maulana Sopyan", dob: "22 Mei 2009", ig: "@bohell478", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Santi Rayani", dob: "21 Desember 2008", ig: "@rayanisanti22", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Sinta Sintia Aprianti", dob: "19 April 2008", ig: "@sinta.sin19", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Suci Puput Purnama", dob: "11 November 2008", ig: "@sucipuputtt", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Suci Valenica Febriani", dob: "14 Februari 2008", ig: "@valeniccaa_f", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Sukma Ramadhan", dob: "16 September 2008", ig: "@madann1698", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Syafitri Khairana", dob: "01 Oktober 2008", ig: "@syafit_ri", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Tiara", dob: "06 Maret 2008", ig: "@matchlatt_066", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Vanessa Febriyanti", dob: "13 Februari 2009", ig: "@vanesase_", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Windy Noer Azzahra", dob: "16 Juli 2008", ig: "@windy_anak_baik", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Zahra Jaina Herlina", dob: "22 Oktober 2008", ig: "@z.4raa_", img: "https://files.catbox.moe/21rr7r.jpg" },
+            { name: "Zihan Yolandani", dob: "02 Januari 2009", ig: "@zihanylndnii_", img: "https://files.catbox.moe/21rr7r.jpg" }
+        ];
+
+        const studentContainer = document.getElementById('studentList');
+        members.forEach((m, i) => {
+            studentContainer.innerHTML += `
+                <div class="student-item" onclick="openProfile(${i})">
+                    <img src="${m.img}" onerror="this.src='https://ui-avatars.com/api/?name=${m.name}&background=8e2de2&color=fff'">
+                    <span class="student-name">${m.name}</span>
+                </div>
+            `;
+        });
+
+        function openProfile(i) {
+            const m = members[i];
+            document.getElementById('m-img').src = m.img;
+            document.getElementById('m-name').innerText = m.name;
+            document.getElementById('m-dob').innerText = m.dob;
+            document.getElementById('m-ig').innerText = m.ig;
+            document.getElementById('studentModal').style.display = 'flex';
+        }
+        function closeProfile() { document.getElementById('studentModal').style.display = 'none'; }
+
+        function openSubGallery(title) {
+            const container = document.getElementById('subGalleryContainer');
+            document.getElementById('g-title').innerText = title;
+            container.innerHTML = "";
+            for (let i = 1; i <= 50; i++) {
+                container.innerHTML += `<div class="sub-gallery-item"><img src="https://files.catbox.moe/bmpewp.jpg" loading="lazy"></div>`;
+            }
+            document.getElementById('galleryModal').style.display = 'flex';
+        }
+        function closeSubGallery() { document.getElementById('galleryModal').style.display = 'none'; }
+
+        function toggleTheme() {
+            const theme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', theme);
+            document.getElementById('theme-icon').className = theme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        const bgm = document.getElementById('bgm');
+        let playing = false;
+        function toggleMusic() {
+            playing ? bgm.pause() : bgm.play();
+            playing = !playing;
+            document.getElementById('music-icon').className = playing ? 'fas fa-music' : 'fas fa-volume-mute';
+        }
+
+        function enterSite() {
+            document.getElementById('splash').classList.add('hidden');
+            bgm.play(); playing = true;
+            startTyping();
+        }
+
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('mainCard').scrollTop = 0;
+        }
+
+        function startTyping() {
+            const text = "Synchronizing data... Welcome to the heart of Digital Universe.";
+            let i = 0;
+            const target = document.getElementById("typewriter");
+            target.innerHTML = "";
+            function type() {
+                if(i < text.length) { target.innerHTML += text.charAt(i); i++; setTimeout(type, 40); }
+            }
+            type();
+        }
+
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
+        
+        document.addEventListener('mousemove', e => {
+            const c = document.getElementById('cursor');
+            c.style.left = e.clientX + 'px'; c.style.top = e.clientY + 'px';
+        });
+
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": "#8e2de2" },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.5, "random": false },
+                "size": { "value": 3, "random": true },
+                "line_linked": { "enable": true, "distance": 150, "color": "#8e2de2", "opacity": 0.4, "width": 1 },
+                "move": { "enable": true, "speed": 2, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 1 } }, "push": { "particles_nb": 4 } }
+            },
+            "retina_detect": true
+        });
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('studentModal')) closeProfile();
+            if (event.target == document.getElementById('galleryModal')) closeSubGallery();
+        }
+    </script>
+</body>
+</html>
